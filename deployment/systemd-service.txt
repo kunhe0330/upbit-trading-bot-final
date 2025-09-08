@@ -1,0 +1,17 @@
+  [Unit]
+  Description=Upbit ETH Trading Bot
+  After=network.target
+
+  [Service]
+  Type=simple
+  User=root
+  WorkingDirectory=/home/ubuntu/upbit-trading-bot
+  Environment=UPBIT_ACCESS_KEY=your_access_key_here
+  Environment=UPBIT_SECRET_KEY=your_secret_key_here
+  Environment=PORT=80
+  ExecStart=/usr/bin/node server.js
+  Restart=always
+  RestartSec=10
+
+  [Install]
+  WantedBy=multi-user.target
