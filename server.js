@@ -81,8 +81,9 @@
     }
 
     async getCurrentPrice(symbol) {
-      const data = await this.makeRequest('GET', '/v1/ticker', { markets: symbol });
-      return parseFloat(data[0].trade_price);
+      const axios = require("axios");
+      const response = await axios.get("https://api.upbit.com/v1/ticker?markets=" + symbol);
+      return parseFloat(response.data[0].trade_price);
     }
 
     async placeBuyOrder(market, price) {
@@ -249,6 +250,108 @@
         message: error.message,
         action: req.body.action
       });
+    }
+  });
+
+  // 상태 확인 엔드포인트
+  app.get('/status', (req, res) => {
+    res.json({
+      status: 'running',
+      uptime: new Date().toISOString(),
+      config: {
+        buyPercentage: CONFIG.BUY_PERCENTAGE * 100,
+        sellPercentage: CONFIG.SELL_PERCENTAGE * 100,
+        symbol: CONFIG.TRADING_SYMBOL
+      },
+      version: '2.1'
+    });
+  });
+
+  // 간단한 거래 로그 저장 시스템
+  const fs = require('fs');
+  const LOG_FILE = './trading_log.json';
+
+  function logTrade(tradeData) {
+    try {
+      let logs = [];
+      if (fs.existsSync(LOG_FILE)) {
+        const data = fs.readFileSync(LOG_FILE, 'utf8');
+        logs = JSON.parse(data);
+      }
+
+      logs.push({
+        ...tradeData,
+        timestamp: new Date().toISOString()
+      });
+
+      if (logs.length > 200) {
+        logs = logs.slice(-200);
+      }
+
+      fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2));
+      console.log('거래 로그 저장:', tradeData.type);
+    } catch (error) {
+      console.error('로그 저장 실패:', error);
+    }
+  }
+
+  // 로그 조회 엔드포인트
+  app.get('/logs', (req, res) => {
+    try {
+      if (fs.existsSync(LOG_FILE)) {
+        const data = fs.readFileSync(LOG_FILE, 'utf8');
+        const logs = JSON.parse(data);
+        const limit = parseInt(req.query.limit) || 20;
+        res.json(logs.slice(-limit));
+      } else {
+        res.json([]);
+      }
+    } catch (error) {
+      res.status(500).json({ error: '로그 조회 실패', message: error.message });
+    }
+  });
+
+  // 백테스트 결과 조회 엔드포인트
+  app.get('/backtest', (req, res) => {
+    try {
+      if (fs.existsSync('./backtest_results.json')) {
+        const data = fs.readFileSync('./backtest_results.json', 'utf8');
+        const results = JSON.parse(data);
+        res.json(results);
+      } else {
+        res.json({ error: '백테스트 결과가 없습니다. /backtest/run을 먼저 실행해주세요.' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: '백테스트 결과 조회 실패', message: error.message });
+    }
+  });
+
+  // 백테스트 실행 엔드포인트
+  app.post('/backtest/run', async (req, res) => {
+    try {
+      const { spawn } = require('child_process');
+      const backtest = spawn('node', ['run_backtest.js']);
+
+      let output = '';
+      backtest.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      backtest.on('close', (code) => {
+        if (code === 0) {
+          res.json({
+            success: true,
+            message: '백테스트가 완료되었습니다.',
+            output: output,
+            resultsUrl: '/backtest'
+          });
+        } else {
+          res.status(500).json({ error: '백테스트 실행 실패' });
+        }
+      });
+
+    } catch (error) {
+      res.status(500).json({ error: '백테스트 실행 실패', message: error.message });
     }
   });
 
