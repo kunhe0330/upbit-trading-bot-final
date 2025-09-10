@@ -1,51 +1,39 @@
 
-  # Upbit ETH Trading Bot v2.1
+  # Upbit ETH Auto Trading Bot v2.1
 
-  업비트 이더리움 스마트 적립식 자동매매 봇
+  🎯 완전 자동화된 이더리움 매매 봇 시스템
 
-  ## 새로운 기능 (v2.1)
-  - 🧠 **스마트 적응형 매도**: 40% 우선, 최소량 대체
-  - 📊 **인디케이터 연동**: BUY/EXIT_LONG 액션 지원
-  - 💰 **실시간 가격 조회**: 매도 전 ETH 가격 확인
-  - 🎯 **부분 매도**: 매번 ETH 20% 누적 보유
+  ## ✨ 주요 기능
 
-  ## 매매 로직
-  - **매수 신호**: KRW 잔고의 10%로 ETH 매수
-  - **매도 신호**:
-    - ETH 보유량 40% 매도 (5,000원 이상 시)
-    - 최소 거래량 매도 (5,000원 미만 시)
+  - 🚀 **24시간 자동매매** (Oracle Cloud VM)
+  - 📊 **복합 기술지표** (RSI + MACD + Bollinger Bands + Supertrend)
+  - 🧠 **스마트 적응형 매도** (40% 또는 최소 0.001 ETH)
+  - 📡 **TradingView 웹훅** 연동
+  - 📈 **실시간 모니터링** (/status, /logs, /backtest)
+  - 🧪 **백테스팅 시스템** 및 전략 최적화
+  - ⚡ **안정적 API 에러 처리**
 
-  ## 설정
-  1. 업비트 API 키 발급 (거래 권한, IP: 144.24.86.36)
-  2. 환경변수 설정:
-     - UPBIT_ACCESS_KEY
-     - UPBIT_SECRET_KEY
-     - PORT=80
+  ## 🛠 설치 및 실행
 
-  ## TradingView 웹훅
-  - **URL**: http://144.24.86.36/
-  - **매수 신호**: {"action":"BUY"}
-  - **매수 청산**: {"action":"EXIT_LONG"}
-
-  ## 인디케이터 연동
-  통합 스코어링 전략 v2.0과 완벽 연동:
-  - buySignal → BUY 액션
-  - longExitSignal → EXIT_LONG 액션
-
-  ## 서비스 관리
   ```bash
-  # 상태 확인
-  sudo systemctl status upbit-trading.service
+  npm install
+  export UPBIT_ACCESS_KEY="your_access_key"
+  export UPBIT_SECRET_KEY="your_secret_key"
+  npm start
 
-  # 재시작
-  sudo systemctl restart upbit-trading.service
+  🌐 API 엔드포인트
 
-  # 로그 확인
-  journalctl -u upbit-trading.service -f
+  - GET /status - 시스템 상태 확인
+  - GET /logs - 거래 로그 조회
+  - GET /backtest - 백테스트 결과 조회
+  - POST /backtest/run - 백테스트 실행
+  - POST / - TradingView 웹훅 (BUY/EXIT_LONG)
 
-  아키텍처
+  📊 백테스트 실행
 
-  - 플랫폼: Oracle Cloud Always Free
-  - OS: Ubuntu 20.04
-  - 런타임: Node.js 20
-  - 자동시작: systemd 서비스
+  npm run backtest
+
+  🎯 TradingView 웹훅 설정
+
+  URL: http://your-server/
+  Body: {"action": "BUY"} 또는 {"action": "EXIT_LONG"}
